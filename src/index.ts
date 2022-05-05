@@ -1,1 +1,2 @@
-export * from './LineGraph'
+export * from './LineGraph';
+export * from './LineGraphProps';
