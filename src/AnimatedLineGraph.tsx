@@ -14,7 +14,6 @@ import {
   Group,
   PathCommand,
   Line,
-  useSpring,
   useSharedValueEffect,
 } from '@shopify/react-native-skia';
 import type { AnimatedLineGraphProps } from './LineGraphProps';
@@ -134,18 +133,8 @@ export function AnimatedLineGraph({
   const pointerX = useValue(0);
   const pointerY = useValue(0);
 
-  const pointerRadius = useSpring(isActive.value ? 5 : 0, {
-    mass: 1,
-    stiffness: 1000,
-    damping: 50,
-    velocity: 0,
-  });
-  const cursorOpacity = useSpring(isActive.value ? 1 : 0, {
-    mass: 1,
-    stiffness: 1000,
-    damping: 50,
-    velocity: 0,
-  });
+  const pointerRadius = useValue(0);
+  const cursorOpacity = useValue(0);
 
   const lineP1 = useDerivedValue(
     () => vec(pointerX.current, pointerY.current + pointerRadius.current),
@@ -157,6 +146,19 @@ export function AnimatedLineGraph({
   );
 
   useSharedValueEffect(() => {
+    runSpring(pointerRadius, isActive.value ? 5 : 0, {
+      mass: 1,
+      stiffness: 1000,
+      damping: 50,
+      velocity: 0,
+    });
+    runSpring(cursorOpacity, isActive.value ? 1 : 0, {
+      mass: 1,
+      stiffness: 1000,
+      damping: 50,
+      velocity: 0,
+    });
+
     if (isActive.value) onGestureStart?.();
     else onGestureEnd?.();
   }, isActive);
