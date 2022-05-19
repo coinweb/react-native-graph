@@ -23,14 +23,14 @@ type ProgressBarProps = {
   errorGradient: Color[];
 };
 
-const LineProgress = ({
+export function LineProgress({
   steps,
   currentStep,
   isError,
   bgInactive,
   primaryGradient,
   errorGradient,
-}: ProgressBarProps) => {
+}: ProgressBarProps) {
   const [size, onLayout] = useComponentSize();
   const { width } = size;
   const height = 20;
@@ -115,7 +115,7 @@ const LineProgress = ({
       </Canvas>
     </View>
   );
-};
+}
 
 const styles = StyleSheet.create({
   svg: {
@@ -125,5 +125,3 @@ const styles = StyleSheet.create({
     flex: 1,
   },
 });
-
-export default LineProgress;
