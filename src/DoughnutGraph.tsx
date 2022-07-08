@@ -124,6 +124,7 @@ const styles = StyleSheet.create({
   },
   svg: {
     flex: 1,
+    transform: [{ rotate: '-90deg' }],
   },
 });
 
