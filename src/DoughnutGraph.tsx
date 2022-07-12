@@ -65,9 +65,12 @@ export function DoughnutGraph({
 
     let prevPos = 0;
     const positions: [number, number, Color][] = data.map(
-      ([duration, color]) => {
-        const start = prevPos;
-        const end = prevPos + duration - 0.01;
+      ([duration, color], index) => {
+        const firstEl = index === 0;
+        const lastEl = index === data.length - 1;
+
+        const start = prevPos + (firstEl ? 0 : 0.005);
+        const end = prevPos + duration - (lastEl ? 0 : 0.005);
         prevPos += duration;
         return [start, end, color];
       }
