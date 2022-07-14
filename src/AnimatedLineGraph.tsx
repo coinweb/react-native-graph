@@ -196,7 +196,7 @@ export function AnimatedLineGraph({
         <ReanimatedView style={styles.container}>
           {/* Top Label (max price) */}
           {TopAxisLabel != null && (
-            <View style={styles.axisRow}>
+            <View>
               <TopAxisLabel />
             </View>
           )}
@@ -239,7 +239,7 @@ export function AnimatedLineGraph({
 
           {/* Bottom Label (min price) */}
           {BottomAxisLabel != null && (
-            <View style={styles.axisRow}>
+            <View>
               <BottomAxisLabel />
             </View>
           )}
@@ -255,8 +255,5 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
-  },
-  axisRow: {
-    height: 17,
   },
 });
