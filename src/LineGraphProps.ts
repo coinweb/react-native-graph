@@ -29,7 +29,10 @@ interface BaseLineGraphProps extends ViewProps {
 }
 
 export type StaticLineGraphProps = BaseLineGraphProps & {
-  /* any static-only line graph props? */
+  /**
+   * Colors of the gradient.
+   */
+  gradientColors?: Color[];
 };
 export type AnimatedLineGraphProps = BaseLineGraphProps & {
   /**

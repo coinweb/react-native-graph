@@ -1,5 +1,4 @@
 import { Canvas, LinearGradient, Path, vec } from '@shopify/react-native-skia';
-import { getSixDigitHex } from './utils/getSixDigitHex';
 import React, { useCallback, useMemo, useState } from 'react';
 import { View, StyleSheet, LayoutChangeEvent } from 'react-native';
 import { createGraphPath } from './CreateGraphPath';
@@ -9,7 +8,7 @@ export function StaticLineGraph({
   points,
   color,
   lineThickness = 3,
-  enableFadeInMask,
+  gradientColors,
   style,
   ...props
 }: StaticLineGraphProps): React.ReactElement {
@@ -36,32 +35,26 @@ export function StaticLineGraph({
     [graphPadding, height, points, width]
   );
 
-  const gradientColors = useMemo(
-    () => [`${getSixDigitHex(color)}00`, `${getSixDigitHex(color)}ff`],
-    [color]
-  );
-  const gradientFrom = useMemo(() => vec(0, 0), []);
-  const gradientTo = useMemo(() => vec(width * 0.15, 0), [width]);
-
   return (
     <View {...props} style={style} onLayout={onLayout}>
       <Canvas style={styles.svg}>
         <Path
           path={path}
           strokeWidth={lineThickness}
-          color={enableFadeInMask ? undefined : color}
+          color={color}
           style="stroke"
           strokeJoin="round"
           strokeCap="round"
-        >
-          {enableFadeInMask && (
+        />
+        {gradientColors && (
+          <Path path={path}>
             <LinearGradient
-              start={gradientFrom}
-              end={gradientTo}
+              start={vec(0, 0)}
+              end={vec(0, height)}
               colors={gradientColors}
             />
-          )}
-        </Path>
+          </Path>
+        )}
       </Canvas>
     </View>
   );
