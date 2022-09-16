@@ -8,7 +8,7 @@ import {
   Path,
   runSpring,
   Skia,
-  useDerivedValue,
+  useComputedValue,
   useValue,
   vec,
 } from '@shopify/react-native-skia';
@@ -74,7 +74,7 @@ export function LineProgress({
     });
   }, [circleWidth, currentStep, itemHalfWidth, itemWidth, pathEnd, width]);
 
-  const positions = useDerivedValue(
+  const positions = useComputedValue(
     () => [
       0,
       Math.min(0.2, pathEnd.current),

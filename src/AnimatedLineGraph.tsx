@@ -8,7 +8,7 @@ import {
   Path,
   Skia,
   useValue,
-  useDerivedValue,
+  useComputedValue,
   vec,
   Circle,
   Group,
@@ -84,7 +84,8 @@ export function AnimatedLineGraph({
     const previous = paths.current;
     let from: SkPath = previous.to ?? straightLine;
     if (previous.from != null && interpolateProgress.current < 1)
-      from = from.interpolate(previous.from, interpolateProgress.current);
+      from =
+        from.interpolate(previous.from, interpolateProgress.current) ?? from;
 
     if (path.isInterpolatable(from)) {
       paths.current = {
@@ -119,7 +120,7 @@ export function AnimatedLineGraph({
     width,
   ]);
 
-  const path = useDerivedValue(() => {
+  const path = useComputedValue(() => {
     const from = paths.current.from ?? straightLine;
     const to = paths.current.to ?? straightLine;
 
@@ -136,11 +137,11 @@ export function AnimatedLineGraph({
   const pointerRadius = useValue(0);
   const cursorOpacity = useValue(0);
 
-  const lineP1 = useDerivedValue(
+  const lineP1 = useComputedValue(
     () => vec(pointerX.current, pointerY.current + pointerRadius.current),
     [pointerX, pointerY, pointerRadius]
   );
-  const lineP2 = useDerivedValue(
+  const lineP2 = useComputedValue(
     () => vec(pointerX.current, height),
     [pointerX, height]
   );
@@ -205,6 +206,7 @@ export function AnimatedLineGraph({
           <View style={styles.container} onLayout={onLayout}>
             <Canvas style={styles.svg}>
               <Path
+                //@ts-ignore
                 path={path}
                 strokeWidth={lineThickness}
                 color={color}
@@ -213,7 +215,10 @@ export function AnimatedLineGraph({
                 strokeCap="round"
               />
               {gradientColors && (
-                <Path path={path}>
+                <Path
+                  //@ts-ignore
+                  path={path}
+                >
                   <LinearGradient
                     start={vec(0, 0)}
                     end={vec(0, height)}
