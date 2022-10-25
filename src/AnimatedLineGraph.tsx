@@ -191,65 +191,71 @@ export function AnimatedLineGraph({
     [isActive, getSelectedDataPoint, width, x]
   );
 
+  const renderGraph = () => (
+    <ReanimatedView style={styles.container}>
+      {/* Top Label (max price) */}
+      {TopAxisLabel != null && (
+        <View>
+          <TopAxisLabel />
+        </View>
+      )}
+
+      {/* Actual Skia Graph */}
+      <View style={styles.container} onLayout={onLayout}>
+        <Canvas style={styles.svg}>
+          <Path
+            //@ts-ignore
+            path={path}
+            strokeWidth={lineThickness}
+            color={color}
+            style="stroke"
+            strokeJoin="round"
+            strokeCap="round"
+          />
+          {gradientColors && (
+            <Path
+              //@ts-ignore
+              path={path}
+            >
+              <LinearGradient
+                start={vec(0, 0)}
+                end={vec(0, height)}
+                colors={gradientColors}
+              />
+            </Path>
+          )}
+
+          {enablePanGesture && (
+            <Group style="stroke" strokeWidth={2} color={dotColor}>
+              <Circle cx={pointerX} cy={pointerY} r={pointerRadius} />
+              <Line
+                p1={lineP1}
+                p2={lineP2}
+                color={dotColor}
+                strokeWidth={1}
+                opacity={cursorOpacity}
+              />
+            </Group>
+          )}
+        </Canvas>
+      </View>
+
+      {/* Bottom Label (min price) */}
+      {BottomAxisLabel != null && (
+        <View>
+          <BottomAxisLabel />
+        </View>
+      )}
+    </ReanimatedView>
+  );
+
   return (
     <View {...props}>
-      <GestureDetector gesture={enablePanGesture ? gesture : undefined}>
-        <ReanimatedView style={styles.container}>
-          {/* Top Label (max price) */}
-          {TopAxisLabel != null && (
-            <View>
-              <TopAxisLabel />
-            </View>
-          )}
-
-          {/* Actual Skia Graph */}
-          <View style={styles.container} onLayout={onLayout}>
-            <Canvas style={styles.svg}>
-              <Path
-                //@ts-ignore
-                path={path}
-                strokeWidth={lineThickness}
-                color={color}
-                style="stroke"
-                strokeJoin="round"
-                strokeCap="round"
-              />
-              {gradientColors && (
-                <Path
-                  //@ts-ignore
-                  path={path}
-                >
-                  <LinearGradient
-                    start={vec(0, 0)}
-                    end={vec(0, height)}
-                    colors={gradientColors}
-                  />
-                </Path>
-              )}
-
-              {enablePanGesture && (
-                <Group style="stroke" strokeWidth={2} color={dotColor}>
-                  <Circle cx={pointerX} cy={pointerY} r={pointerRadius} />
-                  <Line
-                    p1={lineP1}
-                    p2={lineP2}
-                    color={dotColor}
-                    strokeWidth={1}
-                    opacity={cursorOpacity}
-                  />
-                </Group>
-              )}
-            </Canvas>
-          </View>
-
-          {/* Bottom Label (min price) */}
-          {BottomAxisLabel != null && (
-            <View>
-              <BottomAxisLabel />
-            </View>
-          )}
-        </ReanimatedView>
-      </GestureDetector>
+      {enablePanGesture ? (
+        <GestureDetector gesture={gesture}>{renderGraph()}</GestureDetector>
+      ) : (
+        renderGraph()
+      )}
     </View>
   );
 }
