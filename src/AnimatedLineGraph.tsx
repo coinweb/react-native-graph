@@ -61,7 +61,10 @@ export function AnimatedLineGraph({
   const [size, onLayout] = useComponentSize();
   const { width, height } = size;
   const interpolateProgress = useValue(0);
-  const graphPadding = lineThickness;
+
+  const { gesture, isActive, x } = useHoldOrPanGesture({
+    holdDuration: 300,
+  });
   const circleX = useValue(0);
   const circleY = useValue(0);
   const lineP1 = useValue(vec(0, 0));
@@ -69,9 +72,6 @@ export function AnimatedLineGraph({
   const pathEnd = useValue(0);
   const pointerRadius = useValue(0);
   const cursorOpacity = useValue(0);
-  const { gesture, isActive, x } = useHoldOrPanGesture({
-    holdDuration: 300,
-  });
 
   const straightLine = useMemo(() => {
     const path = Skia.Path.Make();
@@ -193,17 +193,17 @@ export function AnimatedLineGraph({
         velocity: 0,
       }
     );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
-    commandsChanged,
-    gradientPaths,
-    graphPadding,
     height,
     horizontalPadding,
     interpolateProgress,
     pathRange,
     paths,
-    points,
     shouldFillGradient,
+    gradientPaths,
+    points,
+    range,
     straightLine,
     verticalPadding,
     width,
