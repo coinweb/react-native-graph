@@ -8,8 +8,8 @@ import type { GraphPoint, GraphRange } from './LineGraphProps';
 import { createSplineFunction } from './Maths';
 
 export interface GraphXRange {
-  min: number;
-  max: number;
+  min: Date;
+  max: Date;
 }
 
 export interface GraphYRange {
@@ -110,16 +110,15 @@ export function getGraphPathRange(
 }
 
 export const pixelFactorX = (
-  date: number,
-  minValue: number,
-  maxValue: number
+  date: Date,
+  minValue: Date,
+  maxValue: Date
 ): number => {
-  const diff = new Date(maxValue).getTime() - new Date(minValue).getTime();
-  const x = new Date(date).getTime();
+  const diff = maxValue.getTime() - minValue.getTime();
+  const x = date.getTime();
 
-  if (x < new Date(minValue).getTime() || x > new Date(maxValue).getTime())
-    return 0;
-  return (x - new Date(minValue).getTime()) / diff;
+  if (x < minValue.getTime() || x > maxValue.getTime()) return 0;
+  return (x - minValue.getTime()) / diff;
 };
 
 export const pixelFactorY = (
@@ -221,7 +220,7 @@ function createGraphPathBase({
     // Calculates how many points between two points must be
     // calculated and drawn onto the canvas
     const drawingFactor = pixelFactorX(
-      new Date(point.date).getTime() - new Date(prev.date).getTime(),
+      new Date(point.date.getTime() - prev.date.getTime()),
       range.x.min,
       range.x.max
     );

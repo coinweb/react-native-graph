@@ -44,7 +44,6 @@ const ReanimatedView = Reanimated.View as any;
 export function AnimatedLineGraph({
   points,
   color,
-  dotColor,
   gradientFillColors,
   lineThickness = 2,
   range,
@@ -347,7 +346,6 @@ export function AnimatedLineGraph({
               style="stroke"
               strokeJoin="round"
               strokeCap="round"
-              color={color}
             />
             {shouldFillGradient && (
               <Path
@@ -363,12 +361,12 @@ export function AnimatedLineGraph({
             )}
           </Group>
           {enablePanGesture && (
-            <Group style="stroke" strokeWidth={2} color={dotColor}>
+            <Group style="stroke" strokeWidth={2} color={color}>
               <Circle cx={circleX} cy={circleY} r={pointerRadius} />
               <Line
                 p1={lineP1}
                 p2={lineP2}
-                color={dotColor}
+                color={color}
                 strokeWidth={1}
                 opacity={cursorOpacity}
               />
