@@ -14,7 +14,6 @@ import {
   Group,
   PathCommand,
   Line,
-  useSharedValueEffect,
 } from '@shopify/react-native-skia';
 import type { AnimatedLineGraphProps } from './LineGraphProps';
 import { createGraphPath } from './CreateGraphPath';
@@ -146,49 +145,63 @@ export function AnimatedLineGraph({
     [pointerX, height]
   );
 
-  useSharedValueEffect(() => {
-    runSpring(pointerRadius, isActive.value ? 5 : 0, {
-      mass: 1,
-      stiffness: 1000,
-      damping: 50,
-      velocity: 0,
-    });
-    runSpring(cursorOpacity, isActive.value ? 1 : 0, {
-      mass: 1,
-      stiffness: 1000,
-      damping: 50,
-      velocity: 0,
-    });
+  const setFingerX = useCallback(
+    (fingerX: number) => {
+      const y = getYForX(commands.current, fingerX);
 
-    if (isActive.value) onGestureStart?.();
-    else onGestureEnd?.();
-  }, isActive);
+      if (y != null) {
+        pointerX.current = fingerX;
+        pointerY.current = y;
+      }
 
-  useSharedValueEffect(() => {
-    const y = getYForX(commands.current, x.value)!;
-    if (y != null) {
-      pointerX.current = x.value;
-      pointerY.current = y;
-    }
-  }, x);
-
-  const getSelectedDataPoint = useCallback(
-    (currentX: number) => {
-      const index = Math.round((currentX / width) * points.length);
+      const index = Math.round((fingerX / width) * points.length);
       const pointIndex = Math.min(Math.max(index, 0), points.length - 1);
       const dataPoint = points[Math.round(pointIndex)];
       if (dataPoint != null && isActive.value) onPointSelected?.(dataPoint);
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [points, width]
+    [isActive.value, onPointSelected, pointerX, pointerY, points, width]
+  );
+
+  const setIsActive = useCallback(
+    (active: boolean) => {
+      runSpring(pointerRadius, isActive.value ? 5 : 0, {
+        mass: 1,
+        stiffness: 1000,
+        damping: 50,
+        velocity: 0,
+      });
+      runSpring(cursorOpacity, isActive.value ? 1 : 0, {
+        mass: 1,
+        stiffness: 1000,
+        damping: 50,
+        velocity: 0,
+      });
+
+      if (active) {
+        onGestureStart?.();
+      } else {
+        onGestureEnd?.();
+      }
+    },
+    [cursorOpacity, isActive.value, onGestureEnd, onGestureStart, pointerRadius]
   );
 
   useAnimatedReaction(
     () => x.value,
     (fingerX) => {
-      runOnJS(getSelectedDataPoint)(fingerX);
+      if (isActive.value || fingerX) {
+        runOnJS(setFingerX)(fingerX);
+      }
     },
-    [isActive, getSelectedDataPoint, width, x]
+    [isActive, setFingerX, width, x]
+  );
+
+  useAnimatedReaction(
+    () => isActive.value,
+    (active) => {
+      runOnJS(setIsActive)(active);
+    },
+    [isActive, setIsActive]
   );
 
   const renderGraph = () => (
