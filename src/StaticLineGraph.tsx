@@ -1,45 +1,39 @@
 import { Canvas, LinearGradient, Path, vec } from '@shopify/react-native-skia';
-import React, { useMemo } from 'react';
-import { View, StyleSheet } from 'react-native';
-import {
-  createGraphPathWithGradient,
-  getGraphPathRange,
-  GraphPathRange,
-} from './CreateGraphPath';
-import { useComponentSize } from './hooks/useComponentSize';
+import React, { useCallback, useMemo, useState } from 'react';
+import { View, StyleSheet, LayoutChangeEvent } from 'react-native';
+import { createGraphPath } from './CreateGraphPath';
 import type { StaticLineGraphProps } from './LineGraphProps';
 
 export function StaticLineGraph({
   points,
-  range,
   color,
   lineThickness = 3,
-  gradientFillColors,
+  gradientColors,
   style,
   ...props
 }: StaticLineGraphProps): React.ReactElement {
-  const [size, onLayout] = useComponentSize();
-  const { width, height } = size;
+  const [width, setWidth] = useState(0);
+  const [height, setHeight] = useState(0);
+  const graphPadding = lineThickness;
 
-  const pathRange: GraphPathRange = useMemo(
-    () => getGraphPathRange(points, range),
-    [points, range]
+  const onLayout = useCallback(
+    ({ nativeEvent: { layout } }: LayoutChangeEvent) => {
+      setWidth(Math.round(layout.width));
+      setHeight(Math.round(layout.height));
+    },
+    []
   );
 
-  const { path, gradientPath } = useMemo(
+  const path = useMemo(
     () =>
-      createGraphPathWithGradient({
+      createGraphPath({
         points: points,
-        range: pathRange,
         canvasHeight: height,
         canvasWidth: width,
-        horizontalPadding: lineThickness,
-        verticalPadding: lineThickness,
+        graphPadding: graphPadding,
       }),
-    [height, lineThickness, pathRange, points, width]
+    [graphPadding, height, points, width]
   );
-
-  const shouldFillGradient = gradientFillColors != null;
 
   return (
     <View {...props} style={style} onLayout={onLayout}>
@@ -52,15 +46,12 @@ export function StaticLineGraph({
           strokeJoin="round"
           strokeCap="round"
         />
-        {shouldFillGradient && (
-          <Path
-            // @ts-ignore
-            path={gradientPath}
-          >
+        {gradientColors && (
+          <Path path={path}>
             <LinearGradient
               start={vec(0, 0)}
               end={vec(0, height)}
-              colors={gradientFillColors}
+              colors={gradientColors}
             />
           </Path>
         )}
