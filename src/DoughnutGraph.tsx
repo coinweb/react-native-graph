@@ -6,14 +6,16 @@ import {
   Color,
   Group,
   Path,
-  runSpring,
   Skia,
-  SkiaValue,
   SkPath,
-  useValue,
-  useValueEffect,
 } from '@shopify/react-native-skia';
 import { useComponentSize } from './hooks/useComponentSize';
+import {
+  SharedValue,
+  useAnimatedReaction,
+  useSharedValue,
+  withSpring,
+} from 'react-native-reanimated';
 
 export type DoughnutData = [number, Color][];
 
@@ -51,7 +53,7 @@ export function DoughnutGraph({
     []
   );
 
-  const progress = useValue(0);
+  const progress = useSharedValue(0);
 
   useEffect(() => {
     if (height < 1 || width < 1) {
@@ -77,17 +79,14 @@ export function DoughnutGraph({
   }, [data, height, progress, width]);
 
   useEffect(() => {
-    arcPositions.length &&
-      runSpring(
-        progress,
-        { from: 0, to: 1 },
-        {
-          mass: 1,
-          stiffness: 500,
-          damping: 400,
-          velocity: 0,
-        }
-      );
+    if (arcPositions.length) {
+      progress.value = withSpring(1, {
+        mass: 1,
+        stiffness: 500,
+        damping: 400,
+        velocity: 0,
+      });
+    }
   }, [arcPositions, progress]);
 
   return (
@@ -129,13 +128,14 @@ const styles = StyleSheet.create({
 });
 
 type DoughnutArcProps = {
-  progress: SkiaValue<number>;
+  progress: SharedValue<number>;
   path: SkPath;
   start: number;
   end: number;
   color: Color;
   strokeWidth: number;
 };
+
 const DoughnutArc = ({
   progress,
   path,
@@ -144,24 +144,26 @@ const DoughnutArc = ({
   color,
   strokeWidth,
 }: DoughnutArcProps) => {
-  const progressEnd = useValue(0);
-  const animating = useValue(false);
+  const progressEnd = useSharedValue(0);
+  const animating = useSharedValue(false);
 
-  useValueEffect(progress, () => {
-    if (progress.current >= end && !animating.current) {
-      animating.current = true;
-      runSpring(
-        progressEnd,
-        { from: 0, to: end },
-        {
+  // Replaces useValueEffect with useAnimatedReaction
+  useAnimatedReaction(
+    () => progress.value,
+    (progressValue) => {
+      if (progressValue >= end && !animating.value) {
+        animating.value = true;
+        progressEnd.value = withSpring(end, {
           mass: 1,
           stiffness: 500,
           damping: 400,
           velocity: 0,
-        }
-      );
-    }
-  });
+        });
+      }
+    },
+    [progress]
+  );
+
   return (
     <Path
       path={path}

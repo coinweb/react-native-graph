@@ -6,13 +6,16 @@ import {
   Group,
   LinearGradient,
   Path,
-  runSpring,
   Skia,
-  useComputedValue,
-  useValue,
   vec,
 } from '@shopify/react-native-skia';
 import { useComponentSize } from './hooks/useComponentSize';
+
+import {
+  useDerivedValue,
+  useSharedValue,
+  withSpring,
+} from 'react-native-reanimated';
 
 type ProgressBarProps = {
   steps: number;
@@ -55,7 +58,7 @@ export function LineProgress({
     return newPath;
   }, [itemHalfWidth, itemWidth, steps]);
 
-  const pathEnd = useValue(0);
+  const pathEnd = useSharedValue(0);
 
   useEffect(() => {
     if (width < 1) {
@@ -66,7 +69,7 @@ export function LineProgress({
     const currentX = firstStep + currentStep * itemWidth;
     const filledPart = currentX / width;
 
-    runSpring(pathEnd, filledPart, {
+    pathEnd.value = withSpring(filledPart, {
       mass: 1,
       stiffness: 500,
       damping: 400,
@@ -74,14 +77,8 @@ export function LineProgress({
     });
   }, [circleWidth, currentStep, itemHalfWidth, itemWidth, pathEnd, width]);
 
-  const positions = useComputedValue(
-    () => [
-      0,
-      Math.min(0.2, pathEnd.current),
-      pathEnd.current,
-      pathEnd.current,
-      1,
-    ],
+  const positions = useDerivedValue(
+    () => [0, Math.min(0.2, pathEnd.value), pathEnd.value, pathEnd.value, 1],
     [pathEnd]
   );
 

@@ -2,13 +2,10 @@ import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import { View, StyleSheet } from 'react-native';
 import {
   Canvas,
-  runSpring,
   SkPath,
   LinearGradient,
   Path,
   Skia,
-  useValue,
-  useComputedValue,
   vec,
   Circle,
   Group,
@@ -20,6 +17,9 @@ import { createGraphPath } from './CreateGraphPath';
 import Reanimated, {
   runOnJS,
   useAnimatedReaction,
+  useDerivedValue,
+  useSharedValue,
+  withSpring,
 } from 'react-native-reanimated';
 import { GestureDetector } from 'react-native-gesture-handler';
 import { useHoldOrPanGesture } from './hooks/useHoldOrPanGesture';
@@ -45,7 +45,7 @@ export function AnimatedLineGraph({
 }: AnimatedLineGraphProps): React.ReactElement {
   const [size, onLayout] = useComponentSize();
   const { width, height } = size;
-  const interpolateProgress = useValue(0);
+  const interpolateProgress = useSharedValue(0);
   const graphPadding = lineThickness;
 
   const straightLine = useMemo(() => {
@@ -60,7 +60,7 @@ export function AnimatedLineGraph({
     return path;
   }, [height, width]);
 
-  const paths = useValue<{ from?: SkPath; to?: SkPath }>({});
+  const paths = useSharedValue<{ from?: SkPath; to?: SkPath }>({});
   const commands = useRef<PathCommand[]>([]);
 
   useEffect(() => {
@@ -80,35 +80,30 @@ export function AnimatedLineGraph({
       canvasWidth: width,
     });
 
-    const previous = paths.current;
+    const previous = paths.value;
     let from: SkPath = previous.to ?? straightLine;
-    if (previous.from != null && interpolateProgress.current < 1)
-      from =
-        from.interpolate(previous.from, interpolateProgress.current) ?? from;
+    if (previous.from != null && interpolateProgress.value < 1)
+      from = from.interpolate(previous.from, interpolateProgress.value) ?? from;
 
     if (path.isInterpolatable(from)) {
-      paths.current = {
+      paths.value = {
         from: from,
         to: path,
       };
     } else {
-      paths.current = {
+      paths.value = {
         from: path,
         to: path,
       };
     }
     commands.current = path.toCmds();
 
-    runSpring(
-      interpolateProgress,
-      { from: 0, to: 1 },
-      {
-        mass: 1,
-        stiffness: 500,
-        damping: 400,
-        velocity: 0,
-      }
-    );
+    interpolateProgress.value = withSpring(1, {
+      mass: 1,
+      stiffness: 500,
+      damping: 400,
+      velocity: 0,
+    });
   }, [
     graphPadding,
     height,
@@ -119,29 +114,29 @@ export function AnimatedLineGraph({
     width,
   ]);
 
-  const path = useComputedValue(() => {
-    const from = paths.current.from ?? straightLine;
-    const to = paths.current.to ?? straightLine;
+  const path = useDerivedValue(() => {
+    const from = paths.value.from ?? straightLine;
+    const to = paths.value.to ?? straightLine;
 
-    return to.interpolate(from, interpolateProgress.current);
+    return to.interpolate(from, interpolateProgress.value);
   }, [interpolateProgress]);
 
   const { gesture, isActive, x } = useHoldOrPanGesture({
     holdDuration: 300,
   });
 
-  const pointerX = useValue(0);
-  const pointerY = useValue(0);
+  const pointerX = useSharedValue(0);
+  const pointerY = useSharedValue(0);
 
-  const pointerRadius = useValue(0);
-  const cursorOpacity = useValue(0);
+  const pointerRadius = useSharedValue(0);
+  const cursorOpacity = useSharedValue(0);
 
-  const lineP1 = useComputedValue(
-    () => vec(pointerX.current, pointerY.current + pointerRadius.current),
+  const lineP1 = useDerivedValue(
+    () => vec(pointerX.value, pointerY.value + pointerRadius.value),
     [pointerX, pointerY, pointerRadius]
   );
-  const lineP2 = useComputedValue(
-    () => vec(pointerX.current, height),
+  const lineP2 = useDerivedValue(
+    () => vec(pointerX.value, height),
     [pointerX, height]
   );
 
@@ -150,8 +145,8 @@ export function AnimatedLineGraph({
       const y = getYForX(commands.current, fingerX);
 
       if (y != null) {
-        pointerX.current = fingerX;
-        pointerY.current = y;
+        pointerX.value = fingerX;
+        pointerY.value = y;
       }
 
       const index = Math.round((fingerX / width) * points.length);
@@ -164,13 +159,13 @@ export function AnimatedLineGraph({
 
   const setIsActive = useCallback(
     (active: boolean) => {
-      runSpring(pointerRadius, isActive.value ? 5 : 0, {
+      pointerRadius.value = withSpring(isActive.value ? 5 : 0, {
         mass: 1,
         stiffness: 1000,
         damping: 50,
         velocity: 0,
       });
-      runSpring(cursorOpacity, isActive.value ? 1 : 0, {
+      cursorOpacity.value = withSpring(isActive.value ? 1 : 0, {
         mass: 1,
         stiffness: 1000,
         damping: 50,
