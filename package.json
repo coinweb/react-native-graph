@@ -1,6 +1,6 @@
 {
-  "name": "react-native-graph",
-  "version": "0.1.1",
+  "name": "@coinweb/react-native-graph",
+  "version": "0.1.1-fabric-2",
   "description": "📈 Beautiful, high-performance Graphs and Charts for React Native",
   "main": "lib/commonjs/index",
   "module": "lib/module/index",
@@ -52,7 +52,7 @@
   },
   "homepage": "https://github.com/margelo/react-native-graph#readme",
   "publishConfig": {
-    "registry": "https://registry.npmjs.org/"
+    "registry": "https://npm.coinweb.io/"
   },
   "devDependencies": {
     "@react-native-community/eslint-config": "^2.0.0",
